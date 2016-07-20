@@ -22,21 +22,22 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends Activity implements AdapterView.OnItemClickListener{
-    static ArrayList<City> citys = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        fillCitys();
+        ArrayList<City> citys = new ArrayList<>();
+        fillCitys(citys);
 
         ListView cityList = (ListView)findViewById(R.id.cityLv);
         MyAdapter adapter = new MyAdapter(this);
+        adapter.setCitys(citys);
         cityList.setAdapter(adapter);
         cityList.setOnItemClickListener(this);
     }
 
-    private void fillCitys(){
+    private void fillCitys(ArrayList<City> citys){
         try {
             InputStream fs = getAssets().open("city.txt");
             BufferedReader reader = new BufferedReader(new InputStreamReader(fs));
@@ -45,13 +46,18 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             while((temp = reader.readLine()) != null) {
                 cityStr += temp;
             }
+            fs.close();
+            if(cityStr == "") throw new Exception("no file content!");
             JSONObject cityAll = new JSONObject(cityStr.trim());
             JSONArray cityArr = (JSONArray)cityAll.get("result");
+            if(cityArr == null) throw new Exception("no city");
             int cityArrLen = cityArr.length();
             for(int i = 0;i < cityArrLen; i++){
                 JSONObject oneCity = (JSONObject)cityArr.get(i);
+                if(oneCity == null) throw new Exception("no city");
                 if(oneCity.has("cities")){
                     JSONArray oneProvince = (JSONArray)oneCity.get("cities");
+                    if(oneProvince == null) throw new Exception("no province");
                     int oneProvinceLen = oneProvince.length();
                     for(int j = 0;j < oneProvinceLen;j++){
                         JSONObject oneProvinceCity = (JSONObject)oneProvince.get(j);
@@ -64,7 +70,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
                     citys.add(cityObject);
                 }
             }
-            fs.close();
         }
         catch(Exception e){
             e.printStackTrace();
@@ -74,13 +79,20 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-        City clickedCity = citys.get(position);
-        //Log.e("successful", clickedCity.getName());
-        Intent weatherIt = new Intent(this,WeatherActivity.class);
-        Bundle cityBundle = new Bundle();
-        cityBundle.putSerializable("cityName",clickedCity);
-        weatherIt.putExtras(cityBundle);
-        startActivity(weatherIt);
+        try {
+            City clickedCity = ((MyAdapter) parent.getAdapter()).getItem(position);
+            if (clickedCity == null)
+                throw new Exception("no city");
+            //Log.e("successful", clickedCity.getName());
+            Intent weatherIt = new Intent(this, WeatherActivity.class);
+            Bundle cityBundle = new Bundle();
+            cityBundle.putSerializable("cityName", clickedCity);
+            weatherIt.putExtras(cityBundle);
+            startActivity(weatherIt);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
     /*@Override
     protected void onStart(){
@@ -119,6 +131,15 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
     public static class  MyAdapter extends BaseAdapter {
         private LayoutInflater mInflater;
+        private ArrayList<City> citys = new ArrayList<>();
+
+        public ArrayList<City> getCitys() {
+            return citys;
+        }
+
+        public void setCitys(ArrayList<City> citys) {
+            this.citys = citys;
+        }
 
         public MyAdapter(Context context) {
             this.mInflater = LayoutInflater.from(context);
@@ -130,8 +151,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         }
 
         @Override
-        public Object getItem(int position){
-            return position;
+        public City getItem(int position){
+            if(position < 0 || position >= getCount()) return null;
+            return citys.get(position);
         }
 
         @Override

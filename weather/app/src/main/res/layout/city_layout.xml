@@ -4,9 +4,9 @@
     android:layout_height="50dp" >
 
     <TextView
+        android:id="@+id/cityName"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:id="@+id/cityName"/>
+        android:gravity="center_vertical" />
 
 </LinearLayout>

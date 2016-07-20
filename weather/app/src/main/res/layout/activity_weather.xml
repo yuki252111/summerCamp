@@ -15,27 +15,131 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_height="0dp"
+            android:layout_weight="2"
             android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/cityName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left|top"
+                    android:layout_weight="1"
+                    android:text="chengshi"
+                    android:textSize="15sp"
+                    android:gravity="left|center_vertical"/>
+                <TextView
+                    android:id="@+id/date"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right|top"
+                    android:layout_weight="1"
+                    android:text="date"
+                    android:textSize="15sp"
+                    android:gravity="right|center_vertical"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/temp"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="wendu"
+                        android:textSize="30sp" />
+                    <TextView
+                        android:id="@+id/tempRange"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:text="1~2"
+                        android:textSize="15sp"
+                        android:gravity="center"
+                        />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/main"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_gravity="right"
+                    android:text="summy"
+                    android:textSize="30sp"
+                    android:gravity="right|center_vertical"
+                    />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp">
+                <TextView
+                    android:id="@+id/pressure"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left|top"
+                    android:layout_weight="1"
+                    android:text="qiya"
+                    android:textSize="15sp"
+                    android:gravity="left|center_vertical"/>
+                <TextView
+                    android:id="@+id/depth"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right|top"
+                    android:layout_weight="1"
+                    android:text="shidu"
+                    android:textSize="15sp"
+                    android:gravity="right|center_vertical"/>
+            </LinearLayout>
             <TextView
+                android:id="@+id/cloud"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center"
-                android:text="今天天气"
-                android:textSize="20sp"/>
-            <ListView
+                android:layout_height="30dp"
+                android:layout_gravity="left|top"
+                android:text="cloud"
+                android:textSize="15sp"
+                android:gravity="left|center_vertical"/>
+            <TextView
+                android:id="@+id/wind"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/weatherInfoLv">
-            </ListView>
+                android:layout_height="30dp"
+                android:layout_gravity="right|top"
+                android:text="wind"
+                android:textSize="15sp"
+                android:gravity="left|center_vertical"/>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="2">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
 
+            <TextView
+                android:id="@+id/day2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="day2"
+                android:textSize="20sp"
+                android:gravity="center"/>
+            <TextView
+                android:id="@+id/day3"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="day3"
+                android:textSize="20sp"
+                android:gravity="center"/>
         </LinearLayout>
 
     </LinearLayout>

@@ -5,19 +5,19 @@
     android:orientation="horizontal">
 
     <TextView
+        android:id="@+id/weatherInfoKey"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:id="@+id/weatherInfoKey"
         android:layout_weight="1"
         android:layout_gravity="center"
         android:textSize="20sp"
         android:text="test"/>
     <TextView
+        android:id="@+id/weatherInfoValue"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:id="@+id/weatherInfoValue"
         android:layout_weight="1"
         android:layout_gravity="center"
         android:textSize="20sp"
