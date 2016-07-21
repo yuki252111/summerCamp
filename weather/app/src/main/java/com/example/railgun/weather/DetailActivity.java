@@ -97,7 +97,7 @@ public class DetailActivity extends Activity {
     }
 
     public static String request(String httpUrl, String httpArg) {
-        BufferedReader reader ;
+        BufferedReader reader = null ;
         String result = null;
         StringBuffer sbf = new StringBuffer();
         httpUrl = httpUrl + "?" + httpArg;
@@ -116,10 +116,17 @@ public class DetailActivity extends Activity {
                 sbf.append(strRead);
                 sbf.append("\r\n");
             }
-            reader.close();
             result = sbf.toString();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        finally {
+            try {
+                reader.close();
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
         }
         return result;
     }
@@ -147,7 +154,6 @@ public class DetailActivity extends Activity {
         @Override
         public void run(){
             try {
-                ;
                 String dateString ;
                 String cityName = null;
                 JSONObject weather = null;
