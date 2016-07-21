@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -17,35 +18,75 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class DetailActivity extends Activity {
-    private UIHandler UIhandler;
+    private UIHandler displayInfo;
+    private UIThread getData;
 
+    private static class UIHandler extends Handler {
+        private TextView cityName;
+        private TextView date;
+        private TextView tempRange;
+        private TextView main;
+        private TextView wind;
 
-    private class UIHandler extends Handler {
+        public TextView getCityName() {
+            return cityName;
+        }
+
+        public void setCityName(TextView cityName) {
+            this.cityName = cityName;
+        }
+
+        public TextView getTempRange() {
+            return tempRange;
+        }
+
+        public void setTempRange(TextView tempRange) {
+            this.tempRange = tempRange;
+        }
+
+        public TextView getDate() {
+            return date;
+        }
+
+        public void setDate(TextView date) {
+            this.date = date;
+        }
+
+        public TextView getMain() {
+            return main;
+        }
+
+        public void setMain(TextView main) {
+            this.main = main;
+        }
+
+        public TextView getWind() {
+            return wind;
+        }
+
+        public void setWind(TextView wind) {
+            this.wind = wind;
+        }
+
         @Override
         public void handleMessage(Message msg){
             try {
                 super.handleMessage(msg);
                 Bundle bundle = msg.getData();
-                if(bundle == null ) throw new Exception("null pointer");
+                if(bundle == null ) {
+                    Log.e("Error:","message is null");
+                    return;
+                }
                 JSONObject weather = new JSONObject( bundle.get("weather").toString() );
-                if(weather == null ) throw new Exception("null pointer");
-
-                TextView cityName = (TextView) findViewById(R.id.date);
-                cityName.setText(weather.get("date").toString());
-
-                TextView date = (TextView) findViewById(R.id.cityName);
-                date.setText(bundle.get("city").toString());
-
-
-                TextView tempRange = (TextView)findViewById(R.id.tempRange);
+                if(weather == null ) {
+                    Log.e("Error:","weather is null");
+                    return;
+                }
+                date.setText(weather.get("date").toString());
+                cityName.setText(bundle.get("city").toString());
                 String tempRangeStr = weather.get("low").toString() + "~"+weather.get("high").toString() + "℃";
                 tempRange.setText(tempRangeStr);
-
-                TextView main = (TextView)findViewById(R.id.main);
                 main.setText(weather.get("text_day").toString());
-
-
-                TextView wind = (TextView)findViewById(R.id.wind);
                 String windStr = "风速: " + weather.get("wind_speed").toString()+"km/h";
                 wind.setText(windStr);
             }
@@ -60,7 +101,6 @@ public class DetailActivity extends Activity {
         String result = null;
         StringBuffer sbf = new StringBuffer();
         httpUrl = httpUrl + "?" + httpArg;
-
         try {
             URL url = new URL(httpUrl);
             HttpURLConnection connection = (HttpURLConnection) url
@@ -84,12 +124,30 @@ public class DetailActivity extends Activity {
         return result;
     }
 
-    private class UIThread extends Thread {
+    private static class UIThread extends Thread {
+        Intent dateIt;
+        UIHandler displayInfo;
+
+        public UIHandler getDisplayInfo() {
+            return displayInfo;
+        }
+
+        public void setDisplayInfo(UIHandler displayInfo) {
+            this.displayInfo = displayInfo;
+        }
+
+        public Intent getDateIt() {
+            return dateIt;
+        }
+
+        public void setDateIt(Intent dateIt) {
+            this.dateIt = dateIt;
+        }
+
         @Override
         public void run(){
             try {
-                //JSONArray detailWeatherList = new JSONArray();
-                Intent dateIt = getIntent();
+                ;
                 String dateString ;
                 String cityName = null;
                 JSONObject weather = null;
@@ -97,7 +155,7 @@ public class DetailActivity extends Activity {
                     dateString = dateIt.getStringExtra("date");
                     cityName = dateIt.getStringExtra("cityName");
                     if (dateString == null || cityName == null) {
-                        finish();
+                        return;
                     } else {
                         String httpUrl = "http://apis.baidu.com/thinkpage/weather_api/suggestion";
                         String position = "location="+cityName;
@@ -107,7 +165,10 @@ public class DetailActivity extends Activity {
                         JSONObject days = new JSONObject(jsonResult);
                         JSONArray results = days.getJSONArray("results");
                         JSONArray dailys = results.getJSONObject(0).getJSONArray("daily");
-                        cityName = results.getJSONObject(0).getJSONObject("location").get("name").toString();
+                        cityName = results.getJSONObject(0)
+                                .getJSONObject("location")
+                                .get("name")
+                                .toString();
                         int dailysLen = dailys.length();
                         for(int i = 0; i < dailysLen; i++){
                             JSONObject dayWeather = dailys.getJSONObject(i);
@@ -118,15 +179,18 @@ public class DetailActivity extends Activity {
                         }
                     }
                 } else {
-                    finish();
+                    return;
                 }
-                if(weather == null) throw new Exception("weather is null");
+                if(weather == null) {
+                    Log.e("Error:","weather is null");
+                    return;
+                }
                 Message msg = new Message();
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("weather", weather.toString());
                 bundle.putSerializable("city", cityName);
                 msg.setData(bundle);
-                DetailActivity.this.UIhandler.sendMessage(msg);
+                displayInfo.sendMessage(msg);
             }
             catch(Exception e){
                 e.printStackTrace();
@@ -138,9 +202,20 @@ public class DetailActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
+        displayInfo = new UIHandler();
+        getTextViews();
 
-        UIhandler = new UIHandler();
-        UIThread ui= new UIThread();
-        ui.start();
+        getData = new UIThread();
+        getData.setDateIt(getIntent());
+        getData.setDisplayInfo(displayInfo);
+        getData.start();
+    }
+
+    private void getTextViews(){
+        displayInfo.setCityName((TextView)findViewById(R.id.cityName));
+        displayInfo.setDate((TextView) findViewById(R.id.date));
+        displayInfo.setTempRange((TextView)findViewById(R.id.tempRange));
+        displayInfo.setMain((TextView)findViewById(R.id.main));
+        displayInfo.setWind((TextView)findViewById(R.id.wind));
     }
 }

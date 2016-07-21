@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,26 +39,38 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     }
 
     private void fillCitys(ArrayList<City> citys){
+        InputStream fs = null;
         try {
-            InputStream fs = getAssets().open("city.txt");
+            fs = getAssets().open("city.txt");
             BufferedReader reader = new BufferedReader(new InputStreamReader(fs));
             String cityStr = "";
             String temp ;
             while((temp = reader.readLine()) != null) {
                 cityStr += temp;
             }
-            fs.close();
-            if(cityStr == "") throw new Exception("no file content!");
+            if(cityStr == ""){
+                Log.e("Error:","no file content!");
+                return;
+            }
             JSONObject cityAll = new JSONObject(cityStr.trim());
             JSONArray cityArr = (JSONArray)cityAll.get("result");
-            if(cityArr == null) throw new Exception("no city");
+            if(cityArr == null) {
+                Log.e("Error:","no city");
+                return;
+            }
             int cityArrLen = cityArr.length();
             for(int i = 0;i < cityArrLen; i++){
                 JSONObject oneCity = (JSONObject)cityArr.get(i);
-                if(oneCity == null) throw new Exception("no city");
+                if(oneCity == null){
+                    Log.e("Error:","no city");
+                    return;
+                }
                 if(oneCity.has("cities")){
                     JSONArray oneProvince = (JSONArray)oneCity.get("cities");
-                    if(oneProvince == null) throw new Exception("no province");
+                    if(oneProvince == null){
+                        Log.e("Error:","no city");
+                        return;
+                    }
                     int oneProvinceLen = oneProvince.length();
                     for(int j = 0;j < oneProvinceLen;j++){
                         JSONObject oneProvinceCity = (JSONObject)oneProvince.get(j);
@@ -74,7 +87,16 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         catch(Exception e){
             e.printStackTrace();
         }
-        //citys=new String[]{"beijing","shanghai"};
+        finally {
+            if(fs != null) {
+                try {
+                    fs.close();
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @Override
@@ -94,36 +116,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             e.printStackTrace();
         }
     }
-    /*@Override
-    protected void onStart(){
-        super.onStart();
-        Log.e("hello","onStart\n");
-    }
-    @Override
-    protected void onResume(){
-        super.onResume();
-        Log.e("hello","onResume\n");
-    }
-    @Override
-    protected void onPause(){
-        super.onPause();
-        Log.e("hello","onPause\n");
-    }
-    @Override
-    protected void onStop(){
-        super.onStop();
-        Log.e("hello","onStop\n");
-    }
-    @Override
-    protected void onRestart(){
-        super.onRestart();
-        Log.e("hello","onRestart\n");
-    }
-    @Override
-    protected  void onDestroy(){
-        super.onDestroy();
-        Log.e("hello","onDestroy\n");
-    }*/
 
     public final static class ViewHolder{
         TextView cityName;
@@ -152,7 +144,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
 
         @Override
         public City getItem(int position){
-            if(position < 0 || position >= getCount()) return null;
+            if(position < 0 || position >= getCount()) {
+                return null;
+            }
             return citys.get(position);
         }
 

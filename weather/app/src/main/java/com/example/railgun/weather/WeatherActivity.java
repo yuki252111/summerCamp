@@ -23,41 +23,123 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class WeatherActivity extends Activity implements View.OnClickListener {
-    private Intent weatherIt ;
-    private City city ;
     private UIHandler UIhandler;
-    private JSONObject weatherInfoMap;
+    private UIThread ui;
 
-    private class UIHandler extends Handler{
+    private static class UIHandler extends Handler{
+        TextView cityName;
+        TextView date;
+        TextView temp;
+        TextView tempRange;
+        TextView main;
+        TextView pressure;
+        TextView depth;
+        TextView cloud;
+        TextView wind;
+
+        public TextView getCityName() {
+            return cityName;
+        }
+
+        public void setCityName(TextView cityName) {
+            this.cityName = cityName;
+        }
+
+        public TextView getDate() {
+            return date;
+        }
+
+        public void setDate(TextView date) {
+            this.date = date;
+        }
+
+        public TextView getTemp() {
+            return temp;
+        }
+
+        public void setTemp(TextView temp) {
+            this.temp = temp;
+        }
+
+        public TextView getTempRange() {
+            return tempRange;
+        }
+
+        public void setTempRange(TextView tempRange) {
+            this.tempRange = tempRange;
+        }
+
+        public TextView getMain() {
+            return main;
+        }
+
+        public void setMain(TextView main) {
+            this.main = main;
+        }
+
+        public TextView getPressure() {
+            return pressure;
+        }
+
+        public void setPressure(TextView pressure) {
+            this.pressure = pressure;
+        }
+
+        public TextView getDepth() {
+            return depth;
+        }
+
+        public void setDepth(TextView depth) {
+            this.depth = depth;
+        }
+
+        public TextView getCloud() {
+            return cloud;
+        }
+
+        public void setCloud(TextView cloud) {
+            this.cloud = cloud;
+        }
+
+        public TextView getWind() {
+            return wind;
+        }
+
+        public void setWind(TextView wind) {
+            this.wind = wind;
+        }
+
         @Override
         public void handleMessage(Message msg){
             try {
-                TextView cityName = (TextView) findViewById(R.id.cityName);
-                cityName.setText(city.getName());
-                TextView date = (TextView) findViewById(R.id.date);
+                super.handleMessage(msg);
+                Bundle bundle = msg.getData();
+                if(bundle == null ) {
+                    Log.e("Error:","message is null");
+                    return;
+                }
+                JSONObject weatherInfoMap = new JSONObject( bundle.get("weatherInfoMap").toString() );
+                if(weatherInfoMap == null ) {
+                    Log.e("Error:","weather is null");
+                    return;
+                }
+                cityName.setText(bundle.getString("city"));
                 SimpleDateFormat dateFm = new SimpleDateFormat("yyyy-MM-dd");
                 String dt = dateFm.format(new java.util.Date());
                 date.setText(dt);
 
-                TextView temp = (TextView) findViewById(R.id.temp);
                 String tempStr = weatherInfoMap.get("温度:") + "℃";
                 temp.setText(tempStr);
-                TextView tempRange = (TextView)findViewById(R.id.tempRange);
                 String tempRangeStr = weatherInfoMap.get("最低温度:").toString() + "~"+weatherInfoMap.get("最高温度:").toString() + "℃";
                 tempRange.setText(tempRangeStr);
 
-                TextView main = (TextView)findViewById(R.id.main);
                 main.setText(weatherInfoMap.get("天气:").toString());
-                TextView pressure = (TextView)findViewById(R.id.pressure);
                 String pressureStr = "气压: " + weatherInfoMap.get("气压:").toString();
                 pressure.setText(pressureStr);
-                TextView depth = (TextView)findViewById(R.id.depth);
                 String depthStr = "湿度: " + weatherInfoMap.get("湿度:").toString();
                 depth.setText(depthStr);
-                TextView cloud = (TextView)findViewById(R.id.cloud);
                 String cloudStr = "云占: " + weatherInfoMap.get("云占百分比:").toString() + "%";
                 cloud.setText(cloudStr);
-                TextView wind = (TextView)findViewById(R.id.wind);
                 String windStr = "风速: " + weatherInfoMap.get("风速:").toString();
                 wind.setText(windStr);
             }
@@ -68,17 +150,35 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
     }
 
     private class UIThread extends Thread{
+        private Intent weatherIt ;
+        City city ;
+
+        public City getCity() {
+            return city;
+        }
+
+        public void setCity(City city) {
+            this.city = city;
+        }
+
+        public Intent getWeatherIt() {
+            return weatherIt;
+        }
+
+        public void setWeatherIt(Intent weatherIt) {
+            this.weatherIt = weatherIt;
+        }
+
         @Override
         public void run(){
             try {
-                weatherInfoMap = new JSONObject();
-                weatherIt = getIntent();
+                JSONObject weatherInfoMap = new JSONObject();
                 if (weatherIt != null) {
-                    city = (City) weatherIt.getSerializableExtra("cityName");
+                        city = (City) weatherIt.getSerializableExtra("cityName");
                     if (city == null) {
                         finish();
                     } else {
-                        DecimalFormat df  =  new  DecimalFormat("#.#");
+                        DecimalFormat df = new  DecimalFormat("#.#");
                         OpenWeatherMap owm = new OpenWeatherMap("50b95478c6c326f917e43f8573170c6f");
 
                         owm.setUnits(OpenWeatherMap.Units.METRIC);
@@ -96,35 +196,30 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
                         if(cwd.hasMainInstance()){
                             if(cwd.getMainInstance().hasTemperature()) {
                                 weatherInfoMap.put("温度:", Float.valueOf(df.format(cwd.getMainInstance().getTemperature())).toString());
-
                             }
                             else{
                                 weatherInfoMap.put("温度:", "-1000");
                             }
                             if(cwd.getMainInstance().hasMinTemperature()) {
                                 weatherInfoMap.put("最低温度:", Float.valueOf(df.format(cwd.getMainInstance().getMinTemperature())).toString());
-
                             }
                             else{
                                 weatherInfoMap.put("最低温度:", "-1000");
                             }
                             if(cwd.getMainInstance().hasMaxTemperature()) {
                                 weatherInfoMap.put("最高温度:", Float.valueOf(df.format(cwd.getMainInstance().getMaxTemperature())).toString());
-
                             }
                             else{
                                 weatherInfoMap.put("最高温度:", "-1000");
                             }
                             if(cwd.getMainInstance().hasPressure()) {
                                 weatherInfoMap.put("气压:", Float.valueOf(df.format(cwd.getMainInstance().getPressure())).toString());
-
                             }
                             else{
                                 weatherInfoMap.put("气压:", "-1000");
                             }
                             if(cwd.getMainInstance().hasHumidity()) {
                                 weatherInfoMap.put("湿度:", Float.valueOf(df.format(cwd.getMainInstance().getHumidity())).toString());
-
                             }
                             else{
                                 weatherInfoMap.put("湿度:", "-1000");
@@ -133,7 +228,6 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
                         if(cwd.hasCloudsInstance()){
                             if(cwd.getCloudsInstance().hasPercentageOfClouds()) {
                                 weatherInfoMap.put("云占百分比:", Float.valueOf(df.format(cwd.getCloudsInstance().getPercentageOfClouds())).toString());
-
                             }
                             else{
                                 weatherInfoMap.put("云占百分比:", "-1000");
@@ -142,7 +236,6 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
                         if(cwd.hasWindInstance()){
                             if(cwd.getWindInstance().hasWindSpeed()) {
                                 weatherInfoMap.put("风速:", Float.valueOf(df.format(cwd.getWindInstance().getWindSpeed())).toString());
-
                             }
                             else{
                                 weatherInfoMap.put("风速:", "-1000");
@@ -157,7 +250,8 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
                 }
                 Message msg = new Message();
                 Bundle bundle = new Bundle();
-                bundle.putBoolean("update",true);
+                bundle.putString("city",city.getName());
+                bundle.putSerializable("weatherInfoMap",weatherInfoMap.toString());
                 msg.setData(bundle);
                 WeatherActivity.this.UIhandler.sendMessage(msg);
             }
@@ -171,9 +265,11 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
-
         UIhandler = new UIHandler();
-        UIThread ui= new UIThread();
+        getTextViews();
+
+        ui = new UIThread();
+        ui.setWeatherIt(getIntent());
         ui.start();
 
         fillInDays();
@@ -209,11 +305,33 @@ public class WeatherActivity extends Activity implements View.OnClickListener {
             String dateString = ((TextView)v).getText().toString();
             Intent detailIt = new Intent(this, DetailActivity.class);
             detailIt.putExtra("date",dateString);
-            detailIt.putExtra("cityName",city.getEnglishName());
+            detailIt.putExtra("cityName",ui.getCity().getEnglishName());
             startActivity(detailIt);
         }
         catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    void getTextViews(){
+        TextView cityName = (TextView) findViewById(R.id.cityName);
+        TextView date = (TextView) findViewById(R.id.date);
+        TextView temp = (TextView) findViewById(R.id.temp);
+        TextView tempRange = (TextView)findViewById(R.id.tempRange);
+        TextView main = (TextView)findViewById(R.id.main);
+        TextView pressure = (TextView)findViewById(R.id.pressure);
+        TextView depth = (TextView)findViewById(R.id.depth);
+        TextView cloud = (TextView)findViewById(R.id.cloud);
+        TextView wind = (TextView)findViewById(R.id.wind);
+
+        UIhandler.setCityName(cityName);
+        UIhandler.setDate(date);
+        UIhandler.setTemp(temp);
+        UIhandler.setTempRange(tempRange);
+        UIhandler.setMain(main);
+        UIhandler.setPressure(pressure);
+        UIhandler.setDepth(depth);
+        UIhandler.setCloud(cloud);
+        UIhandler.setWind(wind);
     }
 }
