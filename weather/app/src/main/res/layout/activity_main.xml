@@ -18,9 +18,10 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"/>
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/cityLv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/text"/>
+
 </RelativeLayout>

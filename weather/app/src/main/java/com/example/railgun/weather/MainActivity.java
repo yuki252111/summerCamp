@@ -1,16 +1,14 @@
 package com.example.railgun.weather;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -22,7 +20,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 
-public class MainActivity extends Activity implements AdapterView.OnItemClickListener{
+public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,11 +29,22 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         ArrayList<City> citys = new ArrayList<>();
         fillCitys(citys);
 
-        ListView cityList = (ListView)findViewById(R.id.cityLv);
-        MyAdapter adapter = new MyAdapter(this);
-        adapter.setCitys(citys);
-        cityList.setAdapter(adapter);
-        cityList.setOnItemClickListener(this);
+        RecyclerView cityList = (RecyclerView)findViewById(R.id.cityLv);
+        LinearLayoutManager manager = new LinearLayoutManager(this);
+        cityList.setLayoutManager(manager);
+        final MyAdapter mAdapter = new MyAdapter();
+        mAdapter.setCitys(citys);
+        mAdapter.setOnItemClickListener(new MyAdapter.OnRecyclerViewItemClickListener(){
+            public void onItemClick(View v, int position){
+                City clickedCity = mAdapter.getCitys().get(position);
+                Intent weatherIt = new Intent(MainActivity.this, WeatherActivity.class);
+                Bundle cityBundle = new Bundle();
+                cityBundle.putSerializable("cityName", clickedCity);
+                weatherIt.putExtras(cityBundle);
+                startActivity(weatherIt);
+            }
+        });
+        cityList.setAdapter(mAdapter);
     }
 
     private void fillCitys(ArrayList<City> citys){
@@ -99,31 +108,10 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         }
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-        try {
-            City clickedCity = ((MyAdapter) parent.getAdapter()).getItem(position);
-            if (clickedCity == null)
-                throw new Exception("no city");
-            //Log.e("successful", clickedCity.getName());
-            Intent weatherIt = new Intent(this, WeatherActivity.class);
-            Bundle cityBundle = new Bundle();
-            cityBundle.putSerializable("cityName", clickedCity);
-            weatherIt.putExtras(cityBundle);
-            startActivity(weatherIt);
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    public final static class ViewHolder{
-        TextView cityName;
-    }
-
-    public static class  MyAdapter extends BaseAdapter {
-        private LayoutInflater mInflater;
-        private ArrayList<City> citys = new ArrayList<>();
+    public static class MyAdapter extends RecyclerView.Adapter {
+        private ArrayList<City> citys;
+        public LayoutInflater mInflater;
+        private OnRecyclerViewItemClickListener mListener;
 
         public ArrayList<City> getCitys() {
             return citys;
@@ -133,45 +121,62 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
             this.citys = citys;
         }
 
-        public MyAdapter(Context context) {
-            this.mInflater = LayoutInflater.from(context);
+        public static interface  OnRecyclerViewItemClickListener{
+            void onItemClick(View v, int position);
+        }
+
+        public void setOnItemClickListener(OnRecyclerViewItemClickListener mListener){
+            this.mListener = mListener;
         }
 
         @Override
-        public int getCount(){
+        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
+            mInflater = LayoutInflater.from(parent.getContext());
+            View mView = mInflater.inflate(R.layout.city_layout, parent, false);
+            MyViewHolder mViewHolder = new MyViewHolder(mView);
+            return mViewHolder;
+        }
+
+        @Override
+        public void onBindViewHolder(final RecyclerView.ViewHolder mViewHolder, final int position){
+            ((MyViewHolder)mViewHolder).getCityName().setText(citys.get(position).getName());
+            ((MyViewHolder)mViewHolder).getCityName().setTag(String.valueOf(position));
+            ((MyViewHolder)mViewHolder).getCityName().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(mListener != null){
+                        mListener.onItemClick(v,position);
+                    }
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount(){
+            if(citys == null) return 0;
             return citys.size();
         }
 
-        @Override
-        public City getItem(int position){
-            if(position < 0 || position >= getCount()) {
-                return null;
+        public static class MyViewHolder extends RecyclerView.ViewHolder{
+            private TextView cityName;
+
+            public TextView getCityName() {
+                return cityName;
             }
-            return citys.get(position);
-        }
 
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent){
-            ViewHolder holder ;
-
-            if(convertView == null){
-                holder = new ViewHolder();
-                convertView = mInflater.inflate(R.layout.city_layout, parent, false);
-
-                holder.cityName = (TextView)convertView.findViewById(R.id.cityName);
-
-                convertView.setTag(holder);
+            public void setCityName(TextView cityName) {
+                this.cityName = cityName;
             }
-            else{
-                holder = (ViewHolder)convertView.getTag();
+
+            public MyViewHolder(View v){
+                super(v);
+                if(v == null){
+                    Log.e("Error:","view is null");
+                }
+                else{
+                    cityName = (TextView)v.findViewById(R.id.cityName);
+                }
             }
-            holder.cityName.setText(citys.get(position).getName());
-            return convertView;
         }
     }
 }
